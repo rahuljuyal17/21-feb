@@ -9,6 +9,7 @@ permissions:
   contents: write
   pages: write
   id-token: write
+  actions: read        # <-- FIX: prevents deprecated v3 fallback
 
 jobs:
   build:
@@ -35,15 +36,15 @@ jobs:
                  --cov-report=html \
                  tests/
 
-      # Upload HTML coverage folder as Pages artifact (correct non-deprecated action)
+      # Upload htmlcov/ using the Pages artifact action (this is NOT deprecated)
       - name: Upload coverage artifact
         uses: actions/upload-pages-artifact@v2
         with:
           path: htmlcov
 
   deploy:
-    runs-on: ubuntu-latest
     needs: build
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
