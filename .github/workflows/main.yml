@@ -1,4 +1,4 @@
-name: Deploy Coverage to GitHub Pages
+name: Deploy Coverage to gh-pages Branch
 
 on:
   push:
@@ -7,17 +7,16 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
-  actions: read        # <-- FIX: prevents deprecated v3 fallback
 
 jobs:
-  build:
+  deploy-coverage:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -29,27 +28,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run tests and generate coverage HTML
+      - name: Run tests and generate coverage
         run: |
           pytest --cov=src \
                  --cov-report=xml \
                  --cov-report=html \
                  tests/
 
-      # Upload htmlcov/ using the Pages artifact action (this is NOT deprecated)
-      - name: Upload coverage artifact
-        uses: actions/upload-pages-artifact@v2
-        with:
-          path: htmlcov
+      - name: Deploy htmlcov to gh-pages
+        run: |
+          mkdir out
+          cp -r htmlcov/* out/
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          git checkout --orphan gh-pages
+          git rm -rf .
+          cp -r out/* .
+          git add .
+          git commit -m "Deploy coverage report"
+          git push -f origin gh-pages
