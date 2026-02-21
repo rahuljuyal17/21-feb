@@ -48,25 +48,12 @@ jobs:
                  --cov-fail-under=80 \
                  tests/
 
-      # ------------------------------
-      # TXT COVERAGE FILE
-      # ------------------------------
-      - name: Generate TXT coverage report
-        run: coverage report > coverage.txt
-
-      - name: Upload TXT coverage report
+      # ---------------------------------------------------------
+      # FULL HTML COVERAGE FOLDER (readable, with CSS + JS)
+      # ---------------------------------------------------------
+      - name: Upload full HTML coverage report
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report-py${{ matrix.python-version }}.txt
-          path: coverage.txt
-          retention-days: 7
-
-      # ------------------------------
-      # HTML COVERAGE FILE (ONLY index.html)
-      # ------------------------------
-      - name: Upload HTML coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report-py${{ matrix.python-version }}.html
-          path: htmlcov/index.html
+          name: coverage-report-py${{ matrix.python-version }}
+          path: htmlcov/
           retention-days: 7
