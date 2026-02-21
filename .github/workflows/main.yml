@@ -49,11 +49,24 @@ jobs:
                  tests/
 
       # ---------------------------------------------------------
-      # FULL HTML COVERAGE FOLDER (readable, with CSS + JS)
+      # TXT COVERAGE FILE
       # ---------------------------------------------------------
-      - name: Upload full HTML coverage report
+      - name: Generate TXT coverage report
+        run: coverage report > coverage.txt
+
+      - name: Upload TXT coverage report
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report-py${{ matrix.python-version }}
+          name: coverage-report-${{ matrix.python-version }}.txt
+          path: coverage.txt
+          retention-days: 7
+
+      # ---------------------------------------------------------
+      # FULL HTML COVERAGE FOLDER (ZIP DOWNLOAD)
+      # ---------------------------------------------------------
+      - name: Upload HTML coverage folder
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-${{ matrix.python-version }}
           path: htmlcov/
           retention-days: 7
