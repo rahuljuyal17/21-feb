@@ -1,3 +1,4 @@
+---
 name: Python CI with Coverage
 on:
   push:
@@ -40,20 +41,6 @@ jobs:
                  --cov-report=html \
                  --cov-fail-under=80 \
                  tests/
-
-      # ✅ (ADDED) Generate TXT coverage report
-      - name: Generate TXT coverage report
-        run: |
-          coverage report > coverage.txt
-
-      # ✅ (ADDED) Upload TXT coverage artifact
-      - name: Upload TXT coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-txt-py${{ matrix.python-version }}
-          path: coverage.txt
-          retention-days: 7
-
       - name: Upload coverage HTML report
         uses: actions/upload-artifact@v4
         with:
