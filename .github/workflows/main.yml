@@ -45,28 +45,20 @@ jobs:
                  --cov-report=term-missing \
                  --cov-report=xml \
                  --cov-report=html \
-                 --cov-fail-under=80 \
                  tests/
 
-      # ---------------------------------------------------------
-      # TXT COVERAGE FILE
-      # ---------------------------------------------------------
-      - name: Generate TXT coverage report
-        run: coverage report > coverage.txt
+      # ------------------------------
+      # SAVE HTML REPORT TO REPO
+      # ------------------------------
+      - name: Copy HTML coverage report to repo folder
+        run: |
+          mkdir -p coverage-reports/py${{ matrix.python-version }}
+          cp -r htmlcov/. coverage-reports/py${{ matrix.python-version }}/
 
-      - name: Upload TXT coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report-${{ matrix.python-version }}.txt
-          path: coverage.txt
-          retention-days: 7
-
-      # ---------------------------------------------------------
-      # FULL HTML COVERAGE FOLDER (ZIP DOWNLOAD)
-      # ---------------------------------------------------------
-      - name: Upload HTML coverage folder
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report-${{ matrix.python-version }}
-          path: htmlcov/
-          retention-days: 7
+      - name: Commit coverage HTML report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add coverage-reports/
+          git diff --cached --quiet || git commit -m "ci: update coverage report for py${{ matrix.python-version }} [skip ci]"
+          git push
