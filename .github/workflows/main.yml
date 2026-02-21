@@ -46,9 +46,4 @@ jobs:
         with:
           name: coverage-report-py${{ matrix.python-version }}
           path: htmlcov/
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          files: ./coverage.xml
-          fail_ci_if_error: true
-          token: ${{ secrets.CODECOV_TOKEN }}
+          retention-days: 7
