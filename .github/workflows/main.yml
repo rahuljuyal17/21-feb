@@ -1,4 +1,4 @@
-name: Deploy Coverage to gh-pages Branch
+name: Deploy Coverage to GitHub Pages
 
 on:
   push:
@@ -31,21 +31,19 @@ jobs:
       - name: Run tests and generate coverage
         run: |
           pytest --cov=src \
-                 --cov-report=xml \
                  --cov-report=html \
                  tests/
 
-      - name: Deploy htmlcov to gh-pages
+      - name: Deploy only htmlcov folder to gh-pages
         run: |
-          mkdir out
-          cp -r htmlcov/* out/
-
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-          git checkout --orphan gh-pages
-          git rm -rf .
-          cp -r out/* .
+          rm -rf .git
+          git init
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          cp -r htmlcov/* .
+          rm -rf htmlcov
           git add .
-          git commit -m "Deploy coverage report"
+          git commit -m "Deploy coverage"
+          git branch -M gh-pages
+          git remote add origin https://github.com/${{ github.repository }}.git
           git push -f origin gh-pages
