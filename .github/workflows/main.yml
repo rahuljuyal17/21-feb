@@ -1,5 +1,8 @@
 name: Python CI with Coverage
 
+permissions:
+  contents: write   # <-- REQUIRED so GitHub Actions can push commits
+
 on:
   push:
     branches:
@@ -47,9 +50,6 @@ jobs:
                  --cov-report=html \
                  tests/
 
-      # ------------------------------
-      # SAVE HTML REPORT TO REPO
-      # ------------------------------
       - name: Copy HTML coverage report to repo folder
         run: |
           mkdir -p coverage-reports/py${{ matrix.python-version }}
