@@ -1,49 +1,73 @@
-name: Deploy Coverage to GitHub Pages
+name: PyTest + Locust CI
 
 on:
   push:
-    branches:
-      - main
-
-permissions:
-  contents: write
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
-  deploy-coverage:
+
+  # ---------------------------------
+  # 1. PyTest for 3 Python versions
+  # ---------------------------------
+  tests:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install pytest
 
-      - name: Run tests and generate coverage
-        run: |
-          pytest --cov=src \
-                 --cov-report=html \
-                 tests/
+      - name: Run unit tests
+        run: pytest tests/
 
-      - name: Deploy only htmlcov folder to gh-pages
+  # ---------------------------------
+  # 2. Locust load test (runs only once)
+  # ---------------------------------
+  locust-test:
+    runs-on: ubuntu-latest
+    needs: tests     # run Locust AFTER PyTest passes
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
         run: |
-          rm -rf .git
-          git init
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          cp -r htmlcov/* .
-          rm -rf htmlcov
-          git add .
-          git commit -m "Deploy coverage"
-          git branch -M gh-pages
-          git remote add origin https://github.com/${{ github.repository }}.git
-          git push -f origin gh-pages
+          pip install -r requirements.txt
+          pip install locust
+
+      - name: Run Locust (headless)
+        run: |
+          locust \
+            --headless \
+            --users 10 \
+            --spawn-rate 2 \
+            --run-time 30s \
+            --csv=results \
+            --exit-code-on-error 1
+
+      - name: Upload Locust results
+        uses: actions/upload-artifact@v4
+        with:
+          name: locust-results
+          path: results_*.csv
